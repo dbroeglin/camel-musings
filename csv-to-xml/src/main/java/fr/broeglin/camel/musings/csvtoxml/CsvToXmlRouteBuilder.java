@@ -24,9 +24,15 @@ final class CsvToXmlRouteBuilder extends RouteBuilder {
 	public void configure() throws Exception {
 		validate();
 
+		onException(Exception.class)
+				.handled(true)
+				.log("EXCEPTION: ${body}\n${headers}");
+
 		from(fromUri)
+				.validate().groovy("request.headers.get('CamelFileName') =~ /^([0-9]{8}T[0-9]{6}Z).*$/")
 				.setHeader("TestTimestamp").groovy(FILENAME_TO_TIMESTAMP_CONVERSION_EXPRESSION)
 				.unmarshal(createFlatpackDataFormat())
+				.log("AFTER UNMARSHALL: ${body}")
 				.split(body())
 				.marshal().xstream()
 				.to("xslt:classpath:fr/broeglin/camel/musings/csvtoxml/test.xsl")

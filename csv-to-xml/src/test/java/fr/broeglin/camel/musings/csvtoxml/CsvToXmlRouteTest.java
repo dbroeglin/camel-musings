@@ -19,6 +19,11 @@ import org.xmlmatchers.namespace.SimpleNamespaceContext;
 
 public class CsvToXmlRouteTest extends CamelTestSupport {
 
+	// TODO: the timestamp depends on daylight saving!
+	private static final String TIMESTAMP = "2014-06-01T18:05:32+0200";
+
+	private static final String CSV_FILE_NAME = "20140601T180532Z-vca-stores.csv";
+
 	@Override
 	protected RouteBuilder createRouteBuilder() throws Exception {
 		return new CsvToXmlRouteBuilder()
@@ -31,14 +36,27 @@ public class CsvToXmlRouteTest extends CamelTestSupport {
 		out.expectedMessageCount(2);
 
 		FileUtils.write(
-				inputDirectory.newFile("20140601T180532Z-vca-stores.csv"),
+				inputDirectory.newFile(CSV_FILE_NAME),
 				"a;b\n1.1;1.2\n2.1;2.2");
 
 		out.assertIsSatisfied();
 
-		// TODO: the timestamp depends on daylight saving!
-		assertDocument(outputtedXmlBody(0), "2014-06-01T18:05:32+0200", "1.1", "1.2");
-		assertDocument(outputtedXmlBody(1), "2014-06-01T18:05:32+0200", "2.1", "2.2");
+		assertDocument(outputtedXmlBody(0), TIMESTAMP, "1.1", "1.2");
+		assertDocument(outputtedXmlBody(1), TIMESTAMP, "2.1", "2.2");
+	}
+
+	@Test
+	public void shouldHandleCsvErrors() throws Exception {
+		out.expectedMessageCount(2);
+
+		FileUtils.write(
+				inputDirectory.newFile(CSV_FILE_NAME),
+				"a;b\n1.1;1.2\n2.1;2.2;2.3");
+
+		out.assertIsSatisfied();
+
+		assertDocument(outputtedXmlBody(0), TIMESTAMP, "1.1", "1.2");
+		assertDocument(outputtedXmlBody(1), TIMESTAMP, "2.1", "2.2");
 	}
 
 	private static final NamespaceContext NSs = new SimpleNamespaceContext()

@@ -7,8 +7,8 @@
            http://camel.apache.org/schema/blueprint/cxf/camel-cxf.xsd
            http://cxf.apache.org/blueprint/jaxrs http://cxf.apache.org/schemas/blueprint/jaxrs.xsd">
 
-	<cxf:rsServer id="rsServer"
-		address="http://localhost:8282/CxfRsRouterTest/route" serviceClass="fr.broeglin.camel.ersatz.ErsatzService"
+	<cxf:rsServer id="rsServer" address="http://localhost:8282/svc/route"
+		serviceClass="fr.broeglin.camel.ersatz.ErsatzService"
 		loggingFeatureEnabled="true" loggingSizeLimit="20" />
 
 	<cxf:rsClient id="rsClient"
@@ -21,7 +21,6 @@
 			<transform>
 				<simple>Hello ${body}</simple>
 			</transform>
-			<to uri="mock:a" />
 		</route>
 	</camelContext>
 </blueprint>
