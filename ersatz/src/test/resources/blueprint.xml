@@ -11,16 +11,23 @@
 		serviceClass="fr.broeglin.camel.ersatz.ErsatzService"
 		loggingFeatureEnabled="true" loggingSizeLimit="20" />
 
-	<cxf:rsClient id="rsClient"
-		address="http://localhost:8383/CxfRsRouterTest/rest" serviceClass="fr.broeglin.camel.ersatz.ErsatzService"
+	<cxf:rsServer id="rsServer2" address="http://localhost:8484/svc/route"
+		serviceClass="fr.broeglin.camel.ersatz.ErsatzService"
+		loggingFeatureEnabled="true" loggingSizeLimit="20" />
+
+	<cxf:rsClient id="rsClient" address="http://localhost:8089/backend"
+		serviceClass="fr.broeglin.camel.ersatz.ErsatzService"
 		loggingFeatureEnabled="true" />
 
 	<camelContext xmlns="http://camel.apache.org/schema/blueprint">
 		<route>
 			<from uri="cxfrs:bean:rsServer?bindingStyle=SimpleConsumer" />
-			<transform>
-				<simple>Hello ${body}</simple>
-			</transform>
+			<to uri="cxfrs:bean:rsClient?bindingStyle=Default" />
+		</route>
+
+		<route>
+			<from uri="cxfrs:bean:rsServer2?bindingStyle=Default" />
+			<to uri="cxfrs:bean:rsClient?bindingStyle=Default" />
 		</route>
 	</camelContext>
 </blueprint>
