@@ -45,20 +45,6 @@ public class CsvToXmlRouteTest extends CamelTestSupport {
 		assertDocument(outputtedXmlBody(1), TIMESTAMP, "2.1", "2.2");
 	}
 
-	@Test
-	public void shouldHandleCsvErrors() throws Exception {
-		out.expectedMessageCount(2);
-
-		FileUtils.write(
-				inputDirectory.newFile(CSV_FILE_NAME),
-				"a;b\n1.1;1.2\n2.1;2.2;2.3");
-
-		out.assertIsSatisfied();
-
-		assertDocument(outputtedXmlBody(0), TIMESTAMP, "1.1", "1.2");
-		assertDocument(outputtedXmlBody(1), TIMESTAMP, "2.1", "2.2");
-	}
-
 	private static final NamespaceContext NSs = new SimpleNamespaceContext()
 			.withBinding("t", "urn:test:csv-to-xml");
 
