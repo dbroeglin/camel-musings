@@ -22,6 +22,7 @@
 	<camelContext xmlns="http://camel.apache.org/schema/blueprint">
 		<route>
 			<from uri="cxfrs:bean:rsServer?bindingStyle=SimpleConsumer" />
+			<log message="BODY: ${body}\nHEADERS: ${headers}"/>
 			<to uri="cxfrs:bean:rsClient?bindingStyle=Default" />
 		</route>
 

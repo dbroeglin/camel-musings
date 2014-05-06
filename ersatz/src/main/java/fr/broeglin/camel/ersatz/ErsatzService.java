@@ -9,8 +9,8 @@ import javax.ws.rs.core.Response;
 
 public class ErsatzService {
 	@GET
-	@Path("/")
-	public Response test(@PathParam("type") String type,
+	@Path("/{id}")
+	public Response test(@PathParam("id") String id,
 			@QueryParam("active") @DefaultValue("true") boolean active) {
 		return Response.ok("SHOULD NEVER APPEAR").build();
 	}
