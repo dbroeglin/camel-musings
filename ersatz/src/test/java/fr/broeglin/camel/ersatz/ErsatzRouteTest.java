@@ -19,17 +19,7 @@ public class ErsatzRouteTest extends CamelBlueprintTestSupport {
 	public void should_work() throws Exception {
 		RestAssured.given().baseUri("http://localhost:8282")
 				.given()
-				.get("/svc/route/ID")
-				.then()
-				.statusCode(200)
-				.body(equalTo("Hello World"));
-	}
-
-	@Test
-	public void should_work1() throws Exception {
-		RestAssured.given().baseUri("http://localhost:8484")
-				.given()
-				.get("/svc/route/ID")
+				.get("/backend/ID")
 				.then()
 				.statusCode(200)
 				.body(equalTo("Hello World"));
@@ -52,6 +42,6 @@ public class ErsatzRouteTest extends CamelBlueprintTestSupport {
 
 	@Override
 	protected String getBlueprintDescriptor() {
-		return "blueprint.xml";
+		return "test-blueprint.xml";
 	}
 }
