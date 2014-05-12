@@ -38,7 +38,14 @@ public abstract class AbstractCamelContextTest extends CamelTestSupport {
 		};
 	}
 
-	protected void bindBean(String beanName, SimpleTestBean bean) {
-		((JndiRegistry)context.getRegistry()).bind(beanName, bean);
+	private JndiRegistry registry;
+
+	@Override
+	protected JndiRegistry createRegistry() throws Exception {
+		return registry = super.createRegistry();
+	}
+
+	protected void bindBean(String beanName, Object bean) {
+		registry.bind(beanName, bean);
 	}
 }

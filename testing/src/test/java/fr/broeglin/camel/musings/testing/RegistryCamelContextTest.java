@@ -7,16 +7,12 @@ import org.junit.Test;
 
 public class RegistryCamelContextTest extends AbstractCamelContextTest {
 
-
-
 	@Test
 	public void bean_ref_should_change_body() throws Exception {
 		out.expectedMessageCount(1);
 
 		sendBody(in.getEndpointUri(), "test");
 
-
-		bindBean("testBean", new SimpleTestBean());
 
 		out.assertIsSatisfied();
 
@@ -27,6 +23,8 @@ public class RegistryCamelContextTest extends AbstractCamelContextTest {
 
 	@Override
 	protected void customizeRoute(RouteDefinition def) {
+		bindBean("testBean", new SimpleTestBean());
+
 		def.beanRef("testBean");
 	}
 }
