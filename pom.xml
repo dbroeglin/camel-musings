@@ -19,6 +19,7 @@
 	</scm>
 
 	<modules>
+		<module>activemq</module>
 		<module>csv-to-xml</module>
 		<module>ersatz</module>
 		<module>testing</module>
@@ -29,6 +30,8 @@
 		<cxf.version>2.7.10</cxf.version>
 		<restassured.version>2.3.1</restassured.version>
 		<wiremock.version>1.46</wiremock.version>
+
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
 	<dependencyManagement>
@@ -70,6 +73,12 @@
 				<groupId>junit</groupId>
 				<artifactId>junit</artifactId>
 				<version>4.11</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.apache.camel</groupId>
+				<artifactId>camel-core</artifactId>
+				<version>${camel.version}</version>
 			</dependency>
 
 			<dependency>
