@@ -21,6 +21,7 @@
 	<modules>
 		<module>csv-to-xml</module>
 		<module>ersatz</module>
+		<module>testing</module>
 	</modules>
 
 	<properties>
