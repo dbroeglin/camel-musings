@@ -1,20 +1,28 @@
 package fr.broeglin.camel.musings.activemq;
 
-import org.apache.activemq.broker.BrokerPlugin;
+import static java.util.Arrays.asList;
+import static org.apache.activemq.command.ActiveMQDestination.QUEUE_TYPE;
+import static org.apache.activemq.command.ActiveMQDestination.createDestination;
+import static org.apache.camel.LoggingLevel.INFO;
+
 import org.apache.activemq.broker.BrokerService;
 import org.apache.activemq.camel.component.ActiveMQComponent;
 import org.apache.activemq.camel.component.ActiveMQConfiguration;
 import org.apache.activemq.network.NetworkConnector;
-import org.apache.activemq.security.JaasAuthenticationPlugin;
 import org.apache.camel.Endpoint;
 import org.apache.camel.EndpointInject;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit4.CamelTestSupport;
-import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class NetworkOfBrokersTest extends CamelTestSupport {
+
+	public static final Logger log = LoggerFactory.getLogger(NetworkOfBrokersTest.class);
+	private static final String REMOTE_BROKER_URL = "tcp://127.0.0.1:51616";
+	private static final String LOCAL_BROKER_URL = "tcp://127.0.0.1:61616";
 
 	@EndpointInject(uri = "direct:in")
 	Endpoint in;
@@ -22,60 +30,70 @@ public class NetworkOfBrokersTest extends CamelTestSupport {
 	@EndpointInject(uri = "mock:out")
 	MockEndpoint out;
 
-	@Before
-	public void setUpBrokers() throws Exception {
-		setUpRemoteBroker();
-		setUpLocalBroker();
-		Thread.sleep(500);
-	}
-
 	private void setUpLocalBroker() throws Exception {
-		BrokerService broker = new BrokerService();
-		broker.setBrokerName("local");
-		broker.setUseShutdownHook(false);
-		broker.setPersistent(false);
+		BrokerService broker = createActivemqBroker("local", LOCAL_BROKER_URL);
 
 		NetworkConnector connector = broker.addNetworkConnector("static://"
-				+ "tcp://127.0.0.1:51616");
+				+ REMOTE_BROKER_URL);
+
 		connector.setDuplex(true);
-		broker.addConnector("tcp://localhost:61616");
+		connector.setStaticBridge(true);
+		connector.setStaticallyIncludedDestinations(asList(
+				createDestination("TEST", QUEUE_TYPE),
+				createDestination("TEST_REPLY_TO", QUEUE_TYPE)));
+
 		broker.start();
 	}
 
 	private void setUpRemoteBroker() throws Exception {
+		createActivemqBroker("remote", REMOTE_BROKER_URL).start();
+	}
+
+	private BrokerService createActivemqBroker(String brokerName, String bindAddress)
+			throws Exception {
+		log.debug("Setting up ActiveMQ broker {}: {}", brokerName, bindAddress);
 		BrokerService broker = new BrokerService();
-		broker.setBrokerName("remote");
+
+		broker.setBrokerName(brokerName);
 		broker.setUseShutdownHook(false);
 		broker.setPersistent(false);
+		broker.setManagementContext(null);
+		broker.setUseJmx(false);
 
-		broker.addConnector("tcp://localhost:51616");
-		broker.start();
+		broker.addConnector(bindAddress);
+		return broker;
 	}
 
 	@Override
 	protected RouteBuilder createRouteBuilder() throws Exception {
-		ActiveMQConfiguration confRemote = new ActiveMQConfiguration();
+		setUpRemoteBroker();
+		setUpLocalBroker();
 
-		confRemote.setBrokerURL("tcp://127.0.0.1:51616");
-		context().addComponent("activemqRemote", new ActiveMQComponent(confRemote));
-
-		ActiveMQConfiguration conf = new ActiveMQConfiguration();
-
-		conf.setBrokerURL("tcp://127.0.0.1:61616");
-		context().addComponent("activemqLocal", new ActiveMQComponent(conf));
+		addActivemqComponent("activemqRemote", REMOTE_BROKER_URL);
+		addActivemqComponent("activemqLocal", LOCAL_BROKER_URL);
 
 		return new RouteBuilder() {
 			@Override
 			public void configure() throws Exception {
 				from(in)
-						.to("activemqRemote:queue:TEST")
+						.to("activemqRemote:queue:TEST?requestTimeout=2000&replyTo=TEST_REPLY_TO")
+						.log(INFO, "About to send message ${body}...")
 						.to(out);
 
 				from("activemqLocal:queue:TEST")
+						.log(INFO, "About to transform message ${body}...")
 						.transform(simple("${body} X"));
-
 			}
 		};
+	}
+
+	private void addActivemqComponent(String scheme, String brokerURL) {
+		ActiveMQConfiguration confRemote = new ActiveMQConfiguration();
+
+		confRemote.setBrokerURL(brokerURL);
+		ActiveMQComponent component = new ActiveMQComponent(confRemote);
+
+		context().addComponent(scheme, component);
 	}
 
 	@Test
