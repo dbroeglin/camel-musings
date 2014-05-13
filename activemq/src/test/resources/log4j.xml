@@ -17,11 +17,11 @@
 	</logger>
 
 	<logger name="org.apache.camel">
-		<level value="DEBUG" />
+		<level value="WARN" />
 	</logger>
 
 	<logger name="org.apache.camel.test">
-		<level value="INFO" />
+		<level value="WARN" />
 	</logger>
 
 	<root>

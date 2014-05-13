@@ -18,9 +18,9 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class NetworkOfBrokersTest extends CamelTestSupport {
+public class NetworkOf2BrokersTest extends CamelTestSupport {
 
-	public static final Logger log = LoggerFactory.getLogger(NetworkOfBrokersTest.class);
+	public static final Logger log = LoggerFactory.getLogger(NetworkOf2BrokersTest.class);
 	private static final String REMOTE_BROKER_URL = "tcp://127.0.0.1:51616";
 	private static final String LOCAL_BROKER_URL = "tcp://127.0.0.1:61616";
 
