@@ -1,10 +1,16 @@
 package fr.broeglin.camel.musings.activemq;
 
+import static java.util.Arrays.asList;
+import static org.apache.activemq.command.ActiveMQDestination.QUEUE_TYPE;
+import static org.apache.activemq.command.ActiveMQDestination.createDestination;
 import static org.apache.camel.LoggingLevel.INFO;
+
+import java.util.Arrays;
 
 import org.apache.activemq.broker.BrokerService;
 import org.apache.activemq.camel.component.ActiveMQComponent;
 import org.apache.activemq.camel.component.ActiveMQConfiguration;
+import org.apache.activemq.command.ActiveMQDestination;
 import org.apache.activemq.network.NetworkConnector;
 import org.apache.camel.Endpoint;
 import org.apache.camel.EndpointInject;
@@ -42,15 +48,19 @@ public class NetworkOf3BrokersTest extends CamelTestSupport {
 
 		connector.setDuplex(true);
 		// connector.setDynamicOnly(true);
-		// connector.setStaticBridge(true);
-		// connector.setStaticallyIncludedDestinations(asList(
-		// createDestination("TEST", QUEUE_TYPE),
-		// createDestination("TEST_REPLY_TO", QUEUE_TYPE)));
+		connector.setStaticBridge(true);
+		connector.setStaticallyIncludedDestinations(asList(
+		createDestination("TEST", QUEUE_TYPE),
+		createDestination("TEST_REPLY_TO1", QUEUE_TYPE)));
 
 		connector = localBroker.addNetworkConnector("static://"
 				+ REMOTE_BROKER_URL2);
 
 		connector.setDuplex(true);
+		connector.setStaticBridge(true);
+		connector.setStaticallyIncludedDestinations(asList(
+		createDestination("TEST", QUEUE_TYPE),
+		createDestination("TEST_REPLY_TO1", QUEUE_TYPE)));
 
 		localBroker.start();
 	}
@@ -90,6 +100,7 @@ public class NetworkOf3BrokersTest extends CamelTestSupport {
 	protected RouteBuilder createRouteBuilder() throws Exception {
 		setUpRemoteBroker();
 		setUpLocalBroker();
+		Thread.sleep(500);
 
 		addActivemqComponent("activemqRemote1", REMOTE_BROKER_URL1);
 		addActivemqComponent("activemqRemote2", REMOTE_BROKER_URL2);
@@ -99,12 +110,12 @@ public class NetworkOf3BrokersTest extends CamelTestSupport {
 			@Override
 			public void configure() throws Exception {
 				from(in1)
-						.to("activemqRemote1:queue:TEST?requestTimeout=2000&replyTo=TEST_REPLY_TO")
+						.to("activemqRemote1:queue:TEST?requestTimeout=2000&replyTo=TEST_REPLY_TO1&replyToType=Exclusive")
 						.log(INFO, "About to send message on 1 ${body}...")
 						.to(out);
 
 				from(in2)
-						.to("activemqRemote2:queue:TEST?requestTimeout=2000&replyTo=TEST_REPLY_TO")
+						.to("activemqRemote2:queue:TEST?requestTimeout=2000&replyTo=TEST_REPLY_TO2&replyToType=Exclusive")
 						.log(INFO, "About to send message on 2 ${body}...")
 						.to(out);
 
@@ -125,11 +136,19 @@ public class NetworkOf3BrokersTest extends CamelTestSupport {
 	}
 
 	@Test
-	public void should_forward_message() throws Exception {
-		out.expectedMessageCount(1);
-		template.requestBody(in1, "test message 1");
+	public void should_setup_amqs() throws Exception {
+		// nothing
+		Thread.sleep(500);
+	}
 
-		out.message(0).body().isEqualTo("test message 1 X");
+	@Test
+	public void should_forward_message() throws Exception {
+		out.expectedMessageCount(3);
+		template.requestBody(in1, "test message 1.1");
+		template.requestBody(in1, "test message 1.2");
+		template.requestBody(in1, "test message 1.3");
+
+		out.expectedBodiesReceived("test message 1.1 X", "test message 1.2 X","test message 1.3 X");
 		out.assertIsSatisfied();
 
 	}
