@@ -26,8 +26,8 @@
 	</modules>
 
 	<properties>
-		<camel.version>2.13.0</camel.version>
-		<cxf.version>2.7.10</cxf.version>
+		<camel.version>2.16.1</camel.version>
+		<cxf.version>3.1.4</cxf.version>
 		<restassured.version>2.3.1</restassured.version>
 		<wiremock.version>1.46</wiremock.version>
 
